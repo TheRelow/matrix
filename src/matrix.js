@@ -24,12 +24,13 @@ export class MatrixGrid {
         'ト', 'ウ', 'キ', 'ョ', 'ウ'
       ],  // Список символов для случайного выбора
       normalGlowIntensity: 0,   // Обычное свечение (0 - без свечения)
-      flashGlowIntensity: 20,   // Интенсивность свечения при вспышке
       flashDuration: 150,       // Длительность вспышки (в миллисекундах)
       flashInterval: 2000,      // Интервал между вспышками (в миллисекундах)
       symbolSize: 48,           // Размер символа
       ...options
     }
+
+    this.options.flashGlowIntensity = this.options.symbolSize / 5 // Интенсивность свечения при вспышке
 
     this.columns = []  // Массив столбцов
     this.initCanvas()
