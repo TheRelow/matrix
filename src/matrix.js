@@ -35,6 +35,9 @@ export class MatrixGrid {
     this.initCanvas()
     this.initGrid() // Инициализация сетки
     this.startFlashAnimation() // Запуск анимации вспышки
+    container.addEventListener('click', () => {
+      console.log("this.columns", this.columns)
+    })
   }
 
   /**
