@@ -18,15 +18,17 @@ export class MatrixGrid {
       flashColor: '#FFFFFF',   // Цвет символа во время вспышки
       glowColor: '#00FF00',    // Цвет свечения
       symbol: '💬',            // Символ для отображения
-      flashGlowIntensity: 20,   // Интенсивность свечения при вспышке
       flashDuration: 150,       // Длительность вспышки (в миллисекундах)
       flashInterval: 2000,      // Интервал между вспышками (в миллисекундах)
       symbolSize: 100,           // Размер символа
       ...options
     }
 
+    this.options.flashGlowIntensity = this.options.symbolSize / 10 // Интенсивность свечения при вспышке
+
     this.initCanvas()
-    this.startAnimation() // Запуск анимации
+    this.setLetter()
+    // this.startAnimation() // Запуск анимации
   }
 
   /**
@@ -95,6 +97,7 @@ export class MatrixGrid {
       const currentGlow = isFlashing ? flashGlowIntensity * Math.sin(progress * Math.PI) : 0
       const currentColor = isFlashing ? this.options.flashColor : this.options.symbolColor
 
+      console.log("currentGlow", currentGlow)
       // Отрисовка символа с текущим цветом и свечением
       this.drawSymbol(currentColor, currentGlow)
 
@@ -104,5 +107,9 @@ export class MatrixGrid {
 
     // Запуск анимации вспышек
     requestAnimationFrame((startTime) => animateFlash(startTime))
+  }
+
+  setLetter() {
+    this.drawSymbol(this.options.symbolColor, 2)
   }
 }

@@ -8,7 +8,6 @@ const animation = new MatrixGrid(container, {
   // glowColor: '#00a6ff',
   symbolSize: 250,
   symbol: 'き',
-  // flashGlowIntensity: 30,
   // flashDuration: 200,
   // flashInterval: 2000
 })
