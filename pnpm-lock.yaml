@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      dat.gui:
+        specifier: ^0.7.9
+        version: 0.7.9
     devDependencies:
       vite:
         specifier: ^5.4.1
@@ -235,6 +239,9 @@ packages:
   '@types/estree@1.0.5':
     resolution: {integrity: sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==}
 
+  dat.gui@0.7.9:
+    resolution: {integrity: sha512-sCNc1OHobc+Erc1HqiswYgHdVNpSJUlk/Hz8vzOCsER7rl+oF/4+v8GXFUyCgtXpoCX6+bnmg07DedLvBLwYKQ==}
+
   esbuild@0.21.5:
     resolution: {integrity: sha512-mg3OPMV4hXywwpoDxu3Qda5xCKQi+vCTZq8S9J/EpkhB2HzKXq4SNFZE3+NK93JYxc8VMSep+lOUSC/RVKaBqw==}
     engines: {node: '>=12'}
@@ -417,6 +424,8 @@ snapshots:
     optional: true
 
   '@types/estree@1.0.5': {}
+
+  dat.gui@0.7.9: {}
 
   esbuild@0.21.5:
     optionalDependencies:

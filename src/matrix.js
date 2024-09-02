@@ -17,11 +17,10 @@ export class MatrixGrid {
       symbolColor: '#00FF00',  // Обычный цвет символа
       flashColor: '#FFFFFF',   // Цвет символа во время вспышки
       glowColor: '#00FF00',    // Цвет свечения
+      symbolSpacing: 1.5,
       symbols: [
-        'ラ', 'ド', 'ク', 'リ', 'フ', 'マ', 'ラ', 'ソ', 'ン', 'わ',
-        'た', 'し', 'ワ', 'タ', 'シ', 'ん', 'ょ', 'ン', 'ョ', 'た',
-        'ば', 'こ', 'タ', 'バ', 'コ', 'と', 'う', 'き', 'ょ', 'う',
-        'ト', 'ウ', 'キ', 'ョ', 'ウ'
+        'ラ', 'ド', 'ク', 'リ', 'フ', 'マ', 'ラ', 'ソ', 'ン', 'わ', 'た', 'し', 'ワ', 'タ', 'シ', 'ん', 'ょ', 'ン', 'ョ', 'た',
+        'ば', 'こ', 'タ', 'バ', 'コ', 'と', 'う', 'き', 'ょ', 'う', 'ト', 'ウ', 'キ', 'ョ', 'ウ'
       ],  // Список символов для случайного выбора
       normalGlowIntensity: 0,   // Обычное свечение (0 - без свечения)
       flashDuration: 150,       // Длительность вспышки (в миллисекундах)
@@ -63,7 +62,7 @@ export class MatrixGrid {
    */
   initGrid() {
     const { width, height, symbolSize } = this.options
-    const symbolSpacing = symbolSize * 1.5
+    const symbolSpacing = symbolSize * this.options.symbolSpacing
     const numColumns = Math.floor(width / symbolSpacing)
     const numRows = Math.floor(height / symbolSpacing)
 
@@ -126,15 +125,14 @@ export class MatrixGrid {
    */
   startFlashAnimation() {
     const { flashInterval } = this.options
-    const animationInterval = 1 // Интервал анимации в мс
 
     const animate = () => {
       const column = this.columns[Math.floor(Math.random() * this.columns.length)]
       this.animateFlash(column)
-      setTimeout(animate, animationInterval)
+      setTimeout(animate, flashInterval)
     }
 
-    setTimeout(animate, animationInterval)
+    setTimeout(animate, flashInterval)
   }
 
   /**
