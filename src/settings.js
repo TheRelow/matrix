@@ -29,7 +29,6 @@ export class Settings {
     this.canvas.style.position = 'fixed'
     this.canvas.style.top = '12px'
     this.canvas.style.left = '12px'
-    this.canvas.style.border = '1px solid #ccc' // Можно убрать, если не нужен бордер
     this.canvas.style.backgroundColor = 'transparent' // Без фона
 
     this.container.appendChild(this.canvas)

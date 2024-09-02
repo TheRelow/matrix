@@ -3,6 +3,11 @@
  * @description Класс для создания сетки символов в стиле "Матрицы" с эффектом вспышки и сменой символов.
  */
 export class MatrixGrid {
+  columns = []
+  verticalScreenGap = 0
+  horizontalScreenGap = 0
+  width = 0
+  height = 0
   /**
    * @constructor
    * @param {HTMLElement} container - HTML элемент, в который будет вставлен канвас.
@@ -10,29 +15,29 @@ export class MatrixGrid {
    */
   constructor(container, options = {}) {
     this.container = container
+    this.width = container.clientWidth
+    this.height = container.clientHeight
     this.options = {
-      width: container.clientWidth,
-      height: container.clientHeight,
       backgroundColor: '#000000',
       symbolColor: '#00FF00',  // Обычный цвет символа
       flashColor: '#FFFFFF',   // Цвет символа во время вспышки
       glowColor: '#00FF00',    // Цвет свечения
-      symbolSpacing: 1.5,
       symbols: [
         'ラ', 'ド', 'ク', 'リ', 'フ', 'マ', 'ラ', 'ソ', 'ン', 'わ', 'た', 'し', 'ワ', 'タ', 'シ', 'ん', 'ょ', 'ン', 'ョ', 'た',
         'ば', 'こ', 'タ', 'バ', 'コ', 'と', 'う', 'き', 'ょ', 'う', 'ト', 'ウ', 'キ', 'ョ', 'ウ'
       ],  // Список символов для случайного выбора
       normalGlowIntensity: 0,   // Обычное свечение (0 - без свечения)
       flashDuration: 150,       // Длительность вспышки (в миллисекундах)
-      flashInterval: 2000,      // Интервал между вспышками (в миллисекундах)
+      flashInterval: 14,        // Интервал между вспышками (в миллисекундах)
       symbolSize: 48,           // Размер символа
+      symbolSpacing: 1.5,       // Расстояние между символами
       ...options
     }
 
     this.options.flashGlowIntensity = this.options.symbolSize / 5 // Интенсивность свечения при вспышке
 
-    this.columns = []  // Массив столбцов
     this.initCanvas()
+    this.initColumns()
     this.initGrid() // Инициализация сетки
     this.startFlashAnimation() // Запуск анимации вспышки
     container.addEventListener('click', () => {
@@ -48,12 +53,17 @@ export class MatrixGrid {
     this.canvas = document.createElement('canvas')
     this.context = this.canvas.getContext('2d')
 
-    this.canvas.width = this.options.width
-    this.canvas.height = this.options.height
+    this.canvas.width = this.width
+    this.canvas.height = this.height
     this.canvas.style.backgroundColor = this.options.backgroundColor
     this.canvas.style.marginBottom = '-5px' // Добавление отступа
 
     this.container.appendChild(this.canvas)
+  }
+
+  initColumns() {
+    // symbolSize
+    // symbolSpacing
   }
 
   /**
@@ -61,13 +71,12 @@ export class MatrixGrid {
    * @description Инициализация сетки символов.
    */
   initGrid() {
-    const { width, height, symbolSize } = this.options
-    const symbolSpacing = symbolSize * this.options.symbolSpacing
-    const numColumns = Math.floor(width / symbolSpacing)
-    const numRows = Math.floor(height / symbolSpacing)
+    const symbolSpacing = this.options.symbolSize * this.options.symbolSpacing
+    const numColumns = Math.floor(this.width / symbolSpacing)
+    const numRows = Math.floor(this.height / symbolSpacing)
 
-    const offsetX = (width - (numColumns - 1) * symbolSpacing) / 2
-    const offsetY = (height - (numRows - 1) * symbolSpacing) / 2
+    const offsetX = (this.width - (numColumns - 1) * symbolSpacing) / 2
+    const offsetY = (this.height - (numRows - 1) * symbolSpacing) / 2
 
     for (let i = 0; i < numColumns; i++) {
       const x = offsetX + i * symbolSpacing
