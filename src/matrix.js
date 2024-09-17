@@ -3,11 +3,22 @@
  * @description Класс для создания сетки символов в стиле "Матрицы" с эффектом вспышки и сменой символов.
  */
 export class MatrixGrid {
+  _mousePosition = null
+  get mousePosition() {
+    return this._mousePosition
+  }
+  set mousePosition(val) {
+    this._mousePosition = val
+  }
+
+  grid = []
   columns = []
-  verticalScreenGap = 0
-  horizontalScreenGap = 0
   width = 0
   height = 0
+  gridSettings = {
+    columns: 0,
+    rows: 0
+  }
   /**
    * @constructor
    * @param {HTMLElement} container - HTML элемент, в который будет вставлен канвас.
@@ -25,7 +36,7 @@ export class MatrixGrid {
       symbols: [
         'ラ', 'ド', 'ク', 'リ', 'フ', 'マ', 'ラ', 'ソ', 'ン', 'わ', 'た', 'し', 'ワ', 'タ', 'シ', 'ん', 'ょ', 'ン', 'ョ', 'た',
         'ば', 'こ', 'タ', 'バ', 'コ', 'と', 'う', 'き', 'ょ', 'う', 'ト', 'ウ', 'キ', 'ョ', 'ウ'
-      ],  // Список символов для случайного выбора
+      ],                        // Список символов для случайного выбора
       normalGlowIntensity: 0,   // Обычное свечение (0 - без свечения)
       flashDuration: 150,       // Длительность вспышки (в миллисекундах)
       flashInterval: 14,        // Интервал между вспышками (в миллисекундах)
@@ -38,11 +49,31 @@ export class MatrixGrid {
 
     this.initCanvas()
     this.initColumns()
-    this.initGrid() // Инициализация сетки
-    this.startFlashAnimation() // Запуск анимации вспышки
-    container.addEventListener('click', () => {
-      console.log("this.columns", this.columns)
-    })
+    const animationTimeout = this.drawSquares()
+
+    setTimeout(() => {
+      this.initHandlers()
+    }, animationTimeout)
+
+    // this.initGrid() // Инициализация сетки
+    // this.startFlashAnimation() // Запуск анимации вспышки
+    // container.addEventListener('click', () => {
+    //   console.log("this.columns", this.columns)
+    // })
+  }
+
+  /**
+   * Рассчитывает позицию элемента по заданной оси.
+   * @param {number} index - Индекс элемента (начиная с 0).
+   * @returns {number} Позиция для данного элемента по оси.
+   */
+  calculatePosition(index) {
+    return index * (this.options.symbolSize + this.options.symbolSize * this.options.symbolSpacing)
+  }
+
+  getElementPosition(col, row) {
+    // TODO: убрал spacing
+    return [this.calculatePosition(col), this.calculatePosition(row)]
   }
 
   /**
@@ -56,14 +87,198 @@ export class MatrixGrid {
     this.canvas.width = this.width
     this.canvas.height = this.height
     this.canvas.style.backgroundColor = this.options.backgroundColor
-    this.canvas.style.marginBottom = '-5px' // Добавление отступа
 
     this.container.appendChild(this.canvas)
   }
 
   initColumns() {
-    // symbolSize
-    // symbolSpacing
+    this.gridSettings = this.calculateGrid(this.width, this.height, this.options.symbolSize, this.options.symbolSpacing)
+    this.grid = Array.from({ length: this.gridSettings.rows }, () => Array(this.gridSettings.columns).fill(0))
+  }
+
+  /**
+   * Устанавливает новое значение в массиве и вызывает колбек при изменении.
+   * @param {number} row - Индекс строки.
+   * @param {number} column - Индекс столбца.
+   * @param {number} newValue - Новое значение для установки.
+   */
+  setValue(row, column, newValue) {
+    const oldValue = this.grid[row][column]
+    if (oldValue !== newValue) {
+      this.grid[row][column] = newValue
+      console.log(`Изменение в ячейке [${row}, ${column}]: ${oldValue} -> ${newValue}`)
+    }
+  }
+
+  generateDiagonalMatrixIndices(rows, columns) {
+    const diagonalIndices = []
+
+    for (let step = 0; step < rows + columns - 1; step++) {
+      const diagonal = []
+
+      for (let i = 0; i <= step; i++) {
+        const row = i
+        const col = step - i
+
+        if (row < rows && col < columns) {
+          diagonal.push([row, col])
+        }
+      }
+
+      diagonalIndices.push(diagonal)
+    }
+
+    return diagonalIndices
+  }
+
+  /**
+   * Анимация появления квадрата из заданной точки.
+   * @param {number | array} x - Координата x левого верхнего угла квадрата. Либо массив [x, y]
+   * @param {number} [y] - Координата y левого верхнего угла квадрата.
+   */
+  animateSquare(x, y) {
+    if (Array.isArray(x)) {
+      y = x[1]
+      x = x[0]
+    }
+    const startTime = performance.now()
+
+    const animate = (time) => {
+      const elapsedTime = time - startTime
+      const progress = Math.min(elapsedTime / 100, 1)
+      const currentSize = this.options.symbolSize * progress
+
+      // Рисование квадрата
+      this.context.fillStyle = '#272e46'
+      this.context.beginPath()
+      this.context.rect(
+        x, // левый верхний угол по x
+        y, // левый верхний угол по y
+        currentSize, // ширина квадрата
+        currentSize  // высота квадрата
+      )
+      this.context.fill()
+      this.context.closePath()
+
+      // Если анимация ещё не завершена, запросить следующий кадр
+      if (progress < 1) {
+        requestAnimationFrame(animate)
+      }
+    }
+
+    // Запуск анимации
+    requestAnimationFrame(animate)
+  }
+
+  /**
+   * Генерация индексов для волн, расходящихся во все стороны от начальной точки.
+   * @param {number} startRow - Начальная строка.
+   * @param {number} startCol - Начальный столбец.
+   * @param {number} rows - Общее количество строк.
+   * @param {number} columns - Общее количество столбцов.
+   * @returns {Array<Array<[number, number]>>} - Массив индексов по уровням от центра.
+   */
+  generateWaveIndices(startRow, startCol, rows, columns) {
+    const waveIndices = []
+    const maxDistance = Math.max(rows, columns)
+
+    for (let distance = 0; distance <= maxDistance; distance++) {
+      const waveLevel = []
+
+      for (let rowOffset = -distance; rowOffset <= distance; rowOffset++) {
+        for (let colOffset = -distance; colOffset <= distance; colOffset++) {
+          const row = startRow + rowOffset
+          const col = startCol + colOffset
+
+          // Проверка границ матрицы и расстояния от начальной точки
+          if (row >= 0 && row < rows && col >= 0 && col < columns && Math.abs(rowOffset) + Math.abs(colOffset) === distance) {
+            waveLevel.push([row, col])
+          }
+        }
+      }
+
+      if (waveLevel.length > 0) {
+        waveIndices.push(waveLevel)
+      }
+    }
+
+    return waveIndices
+  }
+
+  drawSquares() {
+    let timeout = 0
+    // this.generateWaveIndices(40, 22,
+    this.generateDiagonalMatrixIndices(this.gridSettings.rows, this.gridSettings.columns).forEach((step, stepIdx) => {
+      timeout = 10 * stepIdx
+      setTimeout(() => {
+        step.forEach(i => {
+          this.animateSquare(this.getElementPosition(i[1], i[0]))
+        })
+      }, timeout)
+    })
+
+    return timeout + 100
+  }
+
+  /**
+   * Рассчитывает индекс элемента по заданной позиции по оси.
+   * @param {number} position - Позиция элемента по оси.
+   * @returns {number} Индекс элемента по оси.
+   */
+  getIndexFromPosition(position) {
+    // Рассчитываем расстояние до ближайшего центра элемента
+    const distance = position / (this.options.symbolSize + this.options.symbolSize * this.options.symbolSpacing)
+    // Округляем до ближайшего целого числа
+    return Math.round(distance)
+  }
+
+  /**
+   * Рассчитывает индекс элемента на сетке по его позиции, находя ближайший центр элемента.
+   * @param {number} x - Горизонтальная позиция элемента.
+   * @param {number} y - Вертикальная позиция элемента.
+   * @returns {[number, number]} Индексы элемента (колонка, строка).
+   */
+  getMatrixPosition(x, y) {
+    // Находим индекс по горизонтальной позиции
+    // TODO: убрал spacing
+    const col = this.getIndexFromPosition(x)
+    // Находим индекс по вертикальной позиции
+    // TODO: убрал spacing
+    const row = this.getIndexFromPosition(y)
+    return [col, row]
+  }
+
+  initHandlers() {
+    document.addEventListener('mousemove', (e) => {
+      this.mousePosition = [e.clientX, e.clientY]
+    })
+  }
+
+  /**
+   * Рассчитывает отступы и количество блоков, которые можно разместить в контейнере.
+   *
+   * @param {number} containerWidth - Ширина контейнера
+   * @param {number} containerHeight - Высота контейнера
+   * @param {number} blockSize - Размер квадратного блока
+   * @param {number} spacingFactor - Коэффициент для расстояния между блоками
+   * @returns {{ columns: number, rows: number, fullBlockSize: number, width: number, height: number }}
+   */
+  calculateGrid(containerWidth, containerHeight, blockSize, spacingFactor) {
+    const fullBlockSize = Math.floor(blockSize * (spacingFactor + 1))
+
+    const columns = Math.floor(containerWidth / fullBlockSize)
+    const rows = Math.floor(containerHeight / fullBlockSize)
+
+    const width = fullBlockSize * columns
+    const height = fullBlockSize * rows
+
+    return {
+      columns,
+      rows,
+      fullBlockSize,
+      width,
+      height
+    }
   }
 
   /**
